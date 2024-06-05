@@ -1,56 +1,21 @@
-from flask import Flask, request
+from flask import Flask
+from flask_smorest import Api
+from resources.item import blp as ItemBlueprint
+from resources.store import blp as StoreBlueprint
 
 app = Flask(__name__)
 
-stores = [
-    {
-        "name": "My Store",
-        "items": [
-            {
-                "name": "Chair",
-                "price": 15.99
-            }
-        ]
-    }
-]
+#  configurations
+app.config["PROPAGATE_EXCEPTIONS"] = True   # Show any hidden errors from Flask to the main application
+app.config["API_TITLE"] = "Stores REST API"
+app.config["API_VERSION"] = "v1"
+app.config["OPENAPI_VERSION"] = "3.0.3"
+app.config["OPENAPI_URL_PREFIX"] = "/"
+app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"  # Tells flask smorest to use swagger api documentation and share
+# the path to swagger
+app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
 
+api = Api(app)  # Use flask_smorest extension
 
-@app.get("/store")
-def get_stores():
-    return {"stores": stores}
-
-
-@app.post("/store")
-def create_store():
-    request_data = request.get_json()  # gets the body of the request that gets sent from the client
-    new_store = {"name": request_data["name"], "items": []}
-    stores.append(new_store)
-    return new_store, 201  # need to give it a status code at the end and 201 means it's created successfully
-
-
-@app.post("/store/<string:name>/item")
-def create_item(name):
-    request_data = request.get_json()
-    for store in stores:
-        if store["name"] == name:
-            new_item = {"name": request_data["name"], "price": request_data["price"]}
-            store["items"].append(new_item)
-            return new_item, 201
-    return {"message": "Store not found"}, 404  # if looping through each store and doesn't match the name (line 35)
-    # then return error 404
-
-
-@app.get("/store/<string:name>")
-def get_store(name):
-    for store in stores:
-        if store["name"] == name:
-            return store
-    return {"message": "Store not found"}, 404
-
-
-@app.get("/store/<string:name>/item")
-def get_item_in_store(name):
-    for store in stores:
-        if store["name"] == name:
-            return {"items": store["items"]}
-    return {"message": "Store not found"}, 404
+api.register_blueprint(ItemBlueprint)
+api.register_blueprint(StoreBlueprint)
