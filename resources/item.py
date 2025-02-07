@@ -6,7 +6,7 @@ from db import items
 from schemas import ItemSchema, ItemUpdateSchema
 
 blp = Blueprint("Items", __name__, description="Operations on items")
-
+\
 
 @blp.route("/item/<string:item_id>")
 class Item(MethodView):
